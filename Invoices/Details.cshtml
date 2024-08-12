@@ -1,0 +1,194 @@
+﻿@page
+@using System.Web
+@model SunridgeWEB.Pages.Admin.Invoices.DetailsModel
+@{
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 text-center">
+            <h3><strong>Invoice #@Model.objInvoice.InvoiceNumber</strong></h3>
+        </div>
+        <hr>
+        <div class="col-12 text-center">
+            <h3>Invoice Information</h3>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <form method="post">
+                    <div class="col-12">
+                        <dl class="row">
+                            <dt class="col-md-5 text-md-end">Owner:</dt>
+                            <dd class="col-md-7">@Model.objInvoice.Ownership.Owner.OwnerFirstName @Model.objInvoice.Ownership.Owner.OwnerLastName</dd>
+
+                            <dt class="col-md-5 text-md-end">Invoice Number:</dt>
+                            <dd class="col-md-7">
+                                <span class="view-mode">@Model.objInvoice.InvoiceNumber</span>
+                                <span class="edit-mode" style="display:none;">@Model.objInvoice.InvoiceNumber</span>
+                                <input type="hidden" name="InvoiceNumber" value="@Model.objInvoice.InvoiceNumber" />
+                            </dd>
+
+
+                            <dt class="col-md-5 text-md-end col-sm-12 text-center">Invoice Title:</dt>
+                            <dd class="col-md-7 text-md-start col-sm-12 text-center">
+                                <span class="view-mode">@Model.objInvoice.InvoiceTitle</span>
+                                <textarea name="InvoiceTitle" class="edit-mode form-control" style="display:none;">@Model.objInvoice.InvoiceTitle</textarea>
+                            </dd>
+
+                            <dt class="col-md-5 text-md-end">Invoice Amount:</dt>
+                            <dd class="col-md-7">
+                                <span class="view-mode">@Model.objInvoice.InvoiceAmount.ToString("C")</span>
+                                <input type="text" name="InvoiceAmount" class="edit-mode form-control" value="@Model.objInvoice.InvoiceAmount.ToString("F2")" style="display:none;" />
+                            </dd>
+
+                            <dt class="col-md-5 text-md-end">Invoice Date:</dt>
+                            <dd class="col-md-7">
+                                <span class="view-mode">@Model.objInvoice.InvoiceDate.ToString("MM/dd/yyyy")</span>
+                                <input type="date" name="InvoiceDate" class="edit-mode form-control" value="@Model.objInvoice.InvoiceDate.ToString("yyyy-MM-dd")" style="display:none;" />
+                            </dd>
+
+                            <dt class="col-md-5 text-md-end">Invoice Due Date:</dt>
+                            <dd class="col-md-7">
+                                <span class="view-mode">@Model.objInvoice.InvoiceDueDate.ToString("MM/dd/yyyy")</span>
+                                <input type="date" name="InvoiceDueDate" class="edit-mode form-control" value="@Model.objInvoice.InvoiceDueDate.ToString("yyyy-MM-dd")" style="display:none;" />
+                            </dd>
+
+                            <dt class="col-md-5 text-md-end">Invoice Paid:</dt>
+                            <dd class="col-md-7">
+                                <span>@Html.Raw(Model.objInvoice.InvoicePaid ? "<span class='badge bg-success'>Paid</span>" : "<span class='badge bg-danger'>Unpaid</span>")</span>
+                                <input type="hidden" name="InvoicePaid" asp-for="objInvoice.InvoicePaid" class="edit-mode" style="display:none;" />
+                            </dd>
+
+
+
+                            <dt class="col-md-5 text-md-end col-sm-12 text-center">Invoice Notes:</dt>
+                            <dd class="col-md-7 text-md-start col-sm-12 text-center">
+                                <span class="view-mode">@Html.Raw(Model.objInvoice.InvoiceNotes)</span>
+                                <textarea name="InvoiceNotes" class="edit-mode form-control" style="display:none;">@Model.objInvoice.InvoiceNotes</textarea>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-12 text-center py-3">
+                        <button type="button" id="editBtn" class="btn btn-warning" onclick="toggleEditMode()">
+                            <i class="bi bi-pencil"></i> Edit Invoice Information
+                        </button>
+                        <button type="submit" id="saveBtn" class="btn btn-success" style="display:none;">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                        <button type="submit" asp-page-handler="Delete" asp-route-id="@Model.objInvoice.Id" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Delete Invoice
+                        </button>
+                    </div>
+                    <p class="text-secondary text-center">Last Modified by: @Model.objInvoice.InvoiceModifiedBy - @Model.objInvoice.InvoiceModifiedDate.ToString("MM/dd/yyyy")</p>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <div class="text-center">
+                    <h4>Files:</h4>
+                </div>
+                <div class="row">
+                    @if (Model.objInvoiceFileList.Where(file => file.InvoiceId == @Model.objInvoice.Id).Any())
+                    {
+                        @foreach (var file in Model.objInvoiceFileList.Where(file => file.InvoiceId == @Model.objInvoice.Id))
+                        {
+                            <div class="col-lg-6 col-md-12 text-center">
+                                <div class="m-3">
+                                    <a href="@file.InvoiceFileURL" target="_blank">
+                                        @file.InvoiceFileDescription<br />
+                                        <img src="@file.InvoiceFileURL" class="img-fluid my-2 pb-3" style="width: 160px; height: 220px; object-fit: cover;"><br />
+                                    </a>
+                                    @if (!String.IsNullOrEmpty(file.InvoiceFileComment))
+                                    {
+                                        <div style="height:100px;overflow:auto;padding:5px;">
+                                            <p class="text-left">@file.InvoiceFileComment</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-sm-12 text-center">
+                            No Files...
+                        </div>
+                    }
+                    <div class="col-12 text-center">
+                        <a asp-page="/Admin/Invoices/FileUpsert" asp-route-id="@Model.objInvoice.Id" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Edit Files
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="col-12 text-center">
+            <h4>Payments:</h4>
+        </div>
+        <div class="col-12 text-center mb-3">
+            <a asp-page="/Admin/Invoices/AddManualPayment" asp-route-invoiceId="@Model.objInvoice.Id" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Manual Payment
+            </a>
+        </div>
+        <div class="col-12">
+            <div class="row">
+                @if (Model.Payments.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Payment Amount</th>
+                                    <th>Surcharge</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var payment in Model.Payments)
+                                {
+                                    <tr>
+                                        <td>@payment.PaymentAmount.ToString("C")</td>
+                                        <td>@payment.PaymentSurcharge.ToString("C")</td>
+                                        <td>@payment.PaymentDate.ToString("MM/dd/yyyy")</td>
+                                        <td>@payment.PaymentStatus</td>
+                                        <td>@payment.PaymentNotes</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="col-12 text-center">
+                        No Payments...
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleEditMode() {
+            $('.view-mode').toggle();
+            $('.edit-mode').toggle();
+            $('#editBtn').toggle();
+            $('#saveBtn').toggle();
+        }
+    </script>
+    <script>
+        tinymce.init({
+            selector: 'textarea',
+            setup: function (editor) {
+                editor.on('init', function () {
+                    var rawText = editor.getContent({ format: 'text' });
+                    editor.setContent(rawText);
+                });
+            }
+        });
+    </script>
+}

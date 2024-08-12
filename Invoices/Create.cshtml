@@ -1,0 +1,149 @@
+@page
+@model SunridgeWEB.Pages.Admin.Invoices.CreateModel
+@{
+}
+
+
+<div class="container">
+    <div class="row">
+        <h3 class="text-center"><strong>Create Invoices</strong></h3>
+        <hr>
+        <form id="invoiceForm" method="post">
+
+
+
+            <div class="mb-3">
+                <input type="hidden" class="form-control" id="invoiceNumber" name="Invoice.InvoiceNumber" value="1">
+            </div>
+            <div class="mb-3">
+                <label for="invoiceTitle" class="form-label">Invoice Title</label>
+                <input type="text" class="form-control" id="invoiceTitle" name="Invoice.InvoiceTitle">
+            </div>
+            <div class="mb-3">
+                <label for="invoiceAmount" class="form-label">Invoice Amount</label>
+                <input type="number" step="0.01" class="form-control" id="invoiceAmount" name="Invoice.InvoiceAmount">
+            </div>
+            <div class="mb-3">
+                <label for="invoiceDueDate" class="form-label">Invoice Due Date</label>
+                <input type="date" class="form-control" id="invoiceDueDate" name="Invoice.InvoiceDueDate">
+            </div>
+            <div class="mb-3">
+                <input type="hidden" class="form-control" id="invoicePaid" name="Invoice.InvoicePaid" value="false">
+            </div>
+            <div class="mb-3">
+                <input type="hidden" class="form-control" id="invoiceArchived" name="Invoice.InvoiceArchived" value="false">
+            </div>
+            <input type="hidden" id="invoiceModifiedBy" name="Invoice.InvoiceModifiedBy" value="defaultUser">
+            <input type="hidden" id="invoiceModifiedDate" name="Invoice.InvoiceModifiedDate" value="@DateTime.Now">
+            <div class="mb-3">
+                <label for="invoiceNotes" class="form-label">Notes</label>
+                <textarea class="form-control" id="invoiceNotes" name="Invoice.InvoiceNotes"></textarea>
+            </div>
+
+
+            <a id="selectAll" class="btn btn-secondary">Select All</a>
+
+
+            <table class="table table-striped table-bordered" id="DT_CreateInvoices">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Lot</th>
+                        <th>Email</th>
+                        <th>Home Phone</th>
+                        <th>Mobile Phone</th>
+                        <th>View</th>
+                    </tr>
+                </thead>
+
+            </table>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <div class="col-6 col-md-3">
+            <a asp-page="Index" class="btn btn-outline-primary border  form-control">
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#btnExcel').on('click', function () {
+        dataTable.button('.buttons-excel').trigger();
+    });
+</script>
+
+@section Scripts
+{
+    <script src="~/js/createInvoices.js"></script>
+    <script>
+        tinymce.init({
+            selector: '#invoiceNotes'
+        });
+    </script>
+
+    <script>
+        //  Store selected people
+        var selectedLotOwner = new Set();
+
+        // Manually click to add and remove.
+        $('#DT_CreateInvoices').on('change', '.invoice-checkbox', function () {
+            var id = $(this).val().toString(); 
+            if ($(this).is(':checked')) {
+                selectedLotOwner.add(id);
+            } else {
+                selectedLotOwner.delete(id);
+            }
+        });
+        // add or remove from selectedLotOwner
+        $('#selectAll').click(function () {
+            var allSelected = dataTable.rows().count() === selectedLotOwner.size;
+
+            dataTable.rows().every(function () {
+                var data = this.data();
+                var id = data.id.toString(); 
+                var checkbox = $(this.node()).find('.invoice-checkbox');
+                if (allSelected) {
+                    selectedLotOwner.delete(id);
+                    checkbox.prop('checked', false);
+                } else {
+                    selectedLotOwner.add(id);
+                    checkbox.prop('checked', true);
+                }
+            });
+        });
+        // update checkmarks for each page.
+        $('#DT_CreateInvoices').on('draw.dt', function () {
+            $('.invoice-checkbox').each(function () {
+                var id = $(this).val().toString(); 
+                if (selectedLotOwner.has(id)) {
+                    $(this).prop('checked', true);
+                } else {
+                    $(this).prop('checked', false);
+                }
+            });
+        });
+
+
+        $('#invoiceForm').submit(function (e) {
+            e.preventDefault();
+
+            if (selectedLotOwner.size === 0) {
+                console.log('No checkboxes are checked');
+                return;
+            }
+
+            var input = $("<input>")
+                .attr("type", "hidden")
+                .attr("name", "ownershipIds").val(JSON.stringify(Array.from(selectedLotOwner)));
+            $('#invoiceForm').append($(input));
+
+            this.submit();
+        });
+
+
+    </script>
+
+}
